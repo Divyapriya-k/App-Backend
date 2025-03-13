@@ -1,33 +1,22 @@
+import jwt from "jsonwebtoken";
 
-// import jwt from "jsonwebtoken";
-// import User from "../Models/user.schema.js";
-// import dotenv from "dotenv";
+//user authentication middleware
+const authUser = async (req, res, next ) => { // next is callback function , as it is middleware that's why adding next
+  try {
+    const { token } = req.headers; // Get token from headers
+    if (!token) {
+      return res.json({ success: false, message: "Not authorized Login Again" });
+    }
 
-// dotenv.config();
+    // Verify token
+    const token_decode = jwt.verify(token, process.env.JWT_SECRET);
+    req.body.userId = token_decode.id
 
-// const authMiddleware = async (req, res, next) => {
-//   //const token = req.header("Authorization"); // 1st method
-//   const token = req.headers.authorization?.split(' ')[1]  // split(' ') [1] => bearer token
+    next(); // If valid, proceed to the next middleware/controller
+  } catch (error) {
+    console.error("Token validation error:", error);
+    res.json({ success: false, message: error.message });
+  }
+};
 
-//   if (!token) {
-//     return res.status(401).json({ message: "Token Missing" });
-//   }
-
-//   try {
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//     console.log(decoded);
-//     req.user = decoded;
-//     console.log(req.user);
-//     const user = await User.findById(req.user._id);
-
-//     if (user.role != "admin") {
-//       return res.status(401).json({ message: "Access denied" });
-//     }
-
-//     next();
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-// export default authMiddleware;
+export default authUser;
